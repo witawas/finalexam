@@ -139,24 +139,39 @@ func updCustomerHandler(c *gin.Context) {
 		return
 	}
 
-	stmt, err := database.UpdateCustomer()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-	}
-
-	if _, err := stmt.Exec(id, cus.Name, cus.Name, cus.Email, cus.Email, cus.Status, cus.Status); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-	}
-
-	stmt, err = database.GetCustomer(id)
-	if err != nil {
-		log.Fatal("Fail prepare stmt : ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	myErr := database.UpdateCustomer(id, cus.Name, cus.Email, cus.Status)
+	if myErr.Message != "" {
+		c.JSON(http.StatusInternalServerError, myErr.Message)
 		return
 	}
+	// stmt, err := database.UpdateCustomer()
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	// }
 
-	row := stmt.QueryRow(id)
-	if err = row.Scan(&cus.ID, &cus.Name, &cus.Email, &cus.Status); err != nil {
+	// if _, err := stmt.Exec(id, cus.Name, cus.Name, cus.Email, cus.Email, cus.Status, cus.Status); err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	// }
+
+	// stmt, err = database.GetCustomer(id)
+	// if err != nil {
+	// 	log.Fatal("Fail prepare stmt : ", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	// 	return
+	// }
+
+	// row := stmt.QueryRow(id)
+	// if err = row.Scan(&cus.ID, &cus.Name, &cus.Email, &cus.Status); err != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{"message": "no data found"})
+	// 	return
+	// }
+
+	row, myErr := database.GetCustomerByID(id)
+	if myErr.Message != "" {
+		c.JSON(http.StatusInternalServerError, myErr.Message)
+		return
+	}
+	if errR := row.Scan(&cus.ID, &cus.Name, &cus.Email, &cus.Status); errR != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "no data found"})
 		return
 	}

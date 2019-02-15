@@ -61,12 +61,30 @@ func InsertCustomer(name, email, status string) (int, MyError) {
 	return id, MyError{}
 }
 
-func UpdateCustomer() (*sql.Stmt, error) {
-	return Conn().Prepare(`update customers set 
-						name = CASE WHEN $2 = '' THEN name ELSE $3 END 
-						, email = CASE WHEN $4 = '' THEN email ELSE $5 END 
-						,status = CASE WHEN $6 = '' THEN status ELSE $7 END
-						where id = $1`)
+func UpdateCustomer(id int, name, email, status string) MyError {
+
+	// return Conn().Prepare(`update customers set
+	// 					name = CASE WHEN $2 = '' THEN name ELSE $3 END
+	// 					, email = CASE WHEN $4 = '' THEN email ELSE $5 END
+	// 					,status = CASE WHEN $6 = '' THEN status ELSE $7 END
+	// 					where id = $1`)
+
+	stmt, err := Conn().Prepare(`update customers set 
+	name = CASE WHEN $2 = '' THEN name ELSE $3 END 
+	, email = CASE WHEN $4 = '' THEN email ELSE $5 END 
+	,status = CASE WHEN $6 = '' THEN status ELSE $7 END
+	where id = $1`)
+	if err != nil {
+		//c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return MyError{Message: err.Error(), Code: 111}
+	}
+
+	if _, err := stmt.Exec(id, name, name, email, email, status, status); err != nil {
+		//c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return MyError{Message: err.Error(), Code: 222}
+	}
+
+	return MyError{}
 }
 
 func GetCustomer(id int) (*sql.Stmt, error) {
